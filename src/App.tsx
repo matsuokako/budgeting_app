@@ -3,40 +3,61 @@ import { useState } from 'react'
 type Expense = {
   amount: number
   category: string
+  date: string
 }
 
 function App() {
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('食費')
+  const [date, setDate] = useState('')
   const [expenses, setExpenses] = useState<Expense[]>([])
 
+  // 追加機能
   const addExpense = () => {
-    if (amount === '') {
+    if (amount === '' || date === '') {
       return
     }
 
     const newExpense: Expense = {
       amount: Number(amount),
       category: category,
+      date: date,
     }
 
     setExpenses([...expenses, newExpense])
     setAmount('')
+    setDate('')
+  }
+
+  // 削除機能
+  const deleteExpense = (index: number) => {
+    const newExpenses = expenses.filter((_, i) => i !== index)
+    setExpenses(newExpenses)
   }
 
   const total = expenses.reduce(
-    (sum, expenses) => sum + expenses.amount,
+    (sum, expense) => sum + expense.amount,
     0
   )
 
   return (
-    <div>
-      <h1>家計簿</h1><br></br>
+    <div className="app">
 
+      <header className="header">
+      <h1>家計簿</h1>
+      <br></br>
+      </header>
+
+      <main className='container'>
       <h2>今月の支出</h2>
       <p>¥{total}</p>
 
       <div>
+      <input
+        type='date'
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+      />
       <input
         type="number"
         placeholder="金額を入力"
@@ -65,10 +86,15 @@ function App() {
       <ul>
         {expenses.map((expense, index) => (
           <li key={index}>
-            {expense.category}:￥{expense.amount}
+            {expense.date} {expense.category}:￥{expense.amount}
+
+            <button onClick={() => deleteExpense(index)}>
+              削除
+            </button>
           </li>
         ))}
       </ul>
+      </main>
     </div>
   )
 }
