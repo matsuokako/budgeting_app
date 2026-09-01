@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PieChart, Pie, Tooltip, Legend, ResponsiveContainer, } from 'recharts'
 
 type Expense = {
   amount: number
@@ -47,6 +48,31 @@ function App() {
   const total = filteredExpenses.reduce(
     (sum, expense) => sum + expense.amount,
     0
+  )
+
+  // カテゴリー別合計
+  const categoryTotals = filteredExpenses.reduce(
+    (totals, expense) => {
+      totals[expense.category] = (totals[expense.category] || 0) + expense.amount
+
+      return totals
+    },
+    {} as { [key: string]: number }
+  )
+
+  // 円グラフ用
+  const chartData = Object.entries(categoryTotals).map(
+    ([category, amount], index) => ({
+      name: category,
+      value: amount,
+      fill: [
+        '#8884d8',
+        '#82ca9d',
+        '#ffc658',
+        '#ff8042',
+        '#d26466',
+      ][index],
+    })
   )
 
   return (
@@ -100,7 +126,34 @@ function App() {
       <button onClick={addExpense}>
         支出を追加
       </button>
-    </div>
+      </div><br/>
+
+      <h2>ジャンル別支出</h2>
+      <ul>
+        {Object.entries(categoryTotals).map(
+          ([category, amount]) => (
+            <li key={category}>
+              {category}:￥{amount}
+            </li>
+          )
+        )}
+      </ul>
+
+      <div style={{ width: '100%', height: 300 }}>
+        <ResponsiveContainer>
+          <PieChart>
+            <Pie
+              data={chartData}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              outerRadius={100}
+              label
+              />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
 
       <br/>
       <h2>支出一覧</h2>
