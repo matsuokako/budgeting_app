@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { PieChart, Pie, Tooltip, Legend, ResponsiveContainer, } from 'recharts'
+import { PieChart, Pie, ResponsiveContainer, } from 'recharts'
 
 // 支出用データ定義
 type Expense = {
+  id: number
   amount: number
   category: string
   date: string
@@ -10,6 +11,7 @@ type Expense = {
 
 // 収入用データ定義
 type Income = {
+  id: number
   amount: number
   source: string
   date: string
@@ -32,7 +34,13 @@ function App() {
   const [incomes, setIncomes] = useState<Income[]>([])
 
   // 支出編集機能用
-  const [editingExpenseIndex, setEditingExpenseIndex] = useState<number | null>(null)
+  const [editingExpenseId, setEditingExpenseId] = useState<number | null>(null)
+
+  // 収入編集機能用
+  // 初期値はnull
+  // 収入編集用indexと、収入編集用の関数。useStateによって、numberかnull値が入る。
+  const [editingIncomeId, setEditingIncomeId] = useState<number | null>(null)
+  
 
   // 追加機能
   const addExpense = () => {
@@ -41,17 +49,20 @@ function App() {
     }
 
     const newExpense: Expense = {
+      id: Date.now(), // ??? idは登録日付でいいかなぁ （あとで変える必要アリ）
       amount: Number(amount),
       category: category,
       date: date,
     }
 
     // 編集機能対応
-    if (editingExpenseIndex != null) {
-      const newExpenses = [...expenses]
-      newExpenses[editingExpenseIndex] = newExpense
+    if (editingExpenseId != null) {
+      const newExpenses = expenses.map((expense) =>
+        // 指定のidの支出を探して、更新する処理
+        expense.id === editingExpenseId ? {...newExpense, id: editingExpenseId } : expense // ?????なんですかこれは
+      )
       setExpenses(newExpenses)
-      setEditingExpenseIndex(null)
+      setEditingExpenseId(null)
     } else {
       setExpenses([...expenses, newExpense])
     }
@@ -66,20 +77,35 @@ function App() {
     }
 
     const newIncome: Income = {
+      id: Date.now(), // idの値の取り方を後で変える必要アリ
       amount: Number(incomeAmount),
       source: incomeSource,
       date: incomeDate,
     }
 
-    setIncomes([...incomes, newIncome])
+    // 編集機能対応
+    if (editingIncomeId != null) {
+      const newIncomes = incomes.map((income) =>
+        income.id === editingIncomeId ? {...newIncome, id: editingIncomeId } : income // ?????なんですかこれは2
+      )
+      setIncomes(newIncomes)
+      setEditingIncomeId(null)
+    } else {
+      setIncomes([...incomes, newIncome])
+    }
     setIncomeAmount('')
     setIncomeDate('')
   }
 
-  // 削除機能
-  const deleteExpense = (index: number) => {
-    const newExpenses = expenses.filter((_, i) => i !== index)
+  // 支出用削除機能
+  const deleteExpense = (id: number) => {
+    const newExpenses = expenses.filter((expense) => expense.id !== id)
     setExpenses(newExpenses)
+  }
+  // 収入用削除機能
+  const deleteIncome = (id: number) => {
+    const newIncomes = incomes.filter((income) => income.id !== id)
+    setIncomes(newIncomes)
   }
 
   // 選択した月の支出を取り出す
@@ -180,6 +206,21 @@ function App() {
         {incomes.map((income, index) => (
           <li key={index}>
             {income.date} {income.source}:￥{income.amount}
+            
+            <button
+              onClick={() => {
+                setIncomeAmount(String(income.amount))
+                setIncomeSource(income.source)
+                setIncomeDate(income.date)
+                setEditingIncomeId(income.id)
+              }}
+            >
+              編集
+            </button>
+
+            <button onClick={() => deleteIncome(income.id)}>
+              削除
+            </button>
           </li>
         ))}
       </ul>
@@ -258,13 +299,13 @@ function App() {
                 setAmount(String(expense.amount))
                 setCategory(expense.category)
                 setDate(expense.date)
-                setEditingExpenseIndex(index)
+                setEditingExpenseId(expense.id)
               }}
             >
               編集
             </button>
 
-            <button onClick={() => deleteExpense(index)}>
+            <button onClick={() => deleteExpense(expense.id)}>   {/*idを追加*/}
               削除
             </button>
           </li>
