@@ -1,4 +1,6 @@
+// まだローカル環境でしか動作しません。localhost:xxxx
 import { useState } from 'react'
+import './App.css'
 import { PieChart, Pie, ResponsiveContainer, } from 'recharts'
 
 // 支出用データ定義
@@ -20,11 +22,11 @@ type Income = {
 function App() {
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('食費')
-  const [date, setDate] = useState('')
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10)) // 初期値を今日日付とする
 
   const [incomeAmount, setIncomeAmount] = useState('')
   const [incomeSource, setIncomeSource] = useState('給与')
-  const [incomeDate, setIncomeDate] = useState('')
+  const [incomeDate, setIncomeDate] = useState(new Date().toISOString().slice(0, 10))
 
   const [selectedMonth, setSelectedMonth] = useState(
     new Date().toISOString().slice(0, 7)
@@ -152,10 +154,10 @@ function App() {
 
       <header className="header">
       <h1>家計簿App_test</h1>
-      <br></br>
       </header>
 
-      <h2>表示する月</h2><br/>
+      <br/>
+      <h2>表示する月</h2>
       <p>表示する月を選択してください。</p>
 
       <input
@@ -165,10 +167,7 @@ function App() {
       /><br/>
 
       <main className='container'>
-      <br/><br/>
-      <h2>今月の支出</h2>
-      <p>¥{total}</p>
-      <br/><br/>
+      
 
       <h2>収入を追加</h2>
 
@@ -196,9 +195,10 @@ function App() {
           <option value={"その他"}>その他</option>
         </select>
 
-        <button onClick={addIncome}>
+        <button onClick={addIncome} className='addButton'>
           追加
         </button>
+        <br/><br/>
       </div>
 
       <h2>収入一覧</h2>
@@ -207,7 +207,7 @@ function App() {
           <li key={index}>
             {income.date} {income.source}:￥{income.amount}
             
-            <button
+            <button className='editButton'
               onClick={() => {
                 setIncomeAmount(String(income.amount))
                 setIncomeSource(income.source)
@@ -218,14 +218,16 @@ function App() {
               編集
             </button>
 
-            <button onClick={() => deleteIncome(income.id)}>
+            <button className='deleteButton' onClick={() => deleteIncome(income.id)}>
               削除
             </button>
           </li>
         ))}
       </ul>
+      <br/>
 
       <div>
+      <h2>支出を追加</h2>
       <p>年月日と金額、ジャンルを選択して支出を追加してください。</p>
       <input
         type='date'
@@ -253,13 +255,41 @@ function App() {
         <option value="住まい">住まい</option>
         <option value="その他">その他</option>
       </select>
+      
+        <button onClick={addExpense} className='addButton'>
+          追加
+        </button>
+      </div>
 
-      <button onClick={addExpense}>
-        支出を追加
-      </button>
-      </div><br/>
+      <br/>
+      <h2>支出一覧</h2>
+      <p>今月の支出: ¥{total}</p>
 
+      <ul>
+        {filteredExpenses.map((expense, index) => (
+          <li key={index}>
+            {expense.date} {expense.category}:￥{expense.amount}
+
+            <button className='editButton'
+              onClick={() => {
+                setAmount(String(expense.amount))
+                setCategory(expense.category)
+                setDate(expense.date)
+                setEditingExpenseId(expense.id)
+              }}
+            >
+              編集
+            </button>
+
+            <button className='deleteButton' onClick={() => deleteExpense(expense.id)}>   {/*idを追加*/}
+              削除
+            </button>
+          </li>
+        ))}
+      </ul>
+      
       <h2>ジャンル別支出一覧</h2>
+      <div className='bottom'>
       <ul>
         {Object.entries(categoryTotals).map(
           ([category, amount]) => (
@@ -270,7 +300,6 @@ function App() {
         )}
       </ul>
 
-      <div style={{ width: '100%', height: 300 }}>
         <ResponsiveContainer>
           <PieChart>
             <Pie
@@ -285,32 +314,6 @@ function App() {
           </PieChart>
         </ResponsiveContainer>
       </div>
-
-      <br/>
-      <h2>支出一覧</h2>
-
-      <ul>
-        {filteredExpenses.map((expense, index) => (
-          <li key={index}>
-            {expense.date} {expense.category}:￥{expense.amount}
-
-            <button
-              onClick={() => {
-                setAmount(String(expense.amount))
-                setCategory(expense.category)
-                setDate(expense.date)
-                setEditingExpenseId(expense.id)
-              }}
-            >
-              編集
-            </button>
-
-            <button onClick={() => deleteExpense(expense.id)}>   {/*idを追加*/}
-              削除
-            </button>
-          </li>
-        ))}
-      </ul>
       </main>
     </div>
   )
