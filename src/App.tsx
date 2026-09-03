@@ -1,4 +1,4 @@
-// まだローカル環境でしか動作しません。localhost:xxxx
+// memo:まだローカル環境でしか動作しません。localhost:xxxx
 import { useState } from 'react'
 import './App.css'
 import { PieChart, Pie, ResponsiveContainer, } from 'recharts'
@@ -59,6 +59,7 @@ function App() {
   }, [])
 
   // 追加機能
+  // MOD 2026/09/03 データベース連携
   const addExpense = () => {
     if (amount === '' || date === '') {
       return
@@ -182,7 +183,6 @@ function App() {
 
       <main className='container'>
       
-
       <h2>収入を追加</h2>
 
       <div>
