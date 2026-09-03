@@ -2,6 +2,8 @@
 import { useState } from 'react'
 import './App.css'
 import { PieChart, Pie, ResponsiveContainer, } from 'recharts'
+import { useEffect } from 'react'
+import { supabase } from './lib/supabaseClient'
 
 // 支出用データ定義
 type Expense = {
@@ -43,6 +45,18 @@ function App() {
   // 収入編集用indexと、収入編集用の関数。useStateによって、numberかnull値が入る。
   const [editingIncomeId, setEditingIncomeId] = useState<number | null>(null)
   
+  // データベース連携テスト
+  useEffect(() => {
+    const testConnection = async () => {
+      const { data, error } = await supabase
+        .from('expenses')
+        .select('*')
+
+      console.log(data)
+      console.log(error)
+    }
+    testConnection()
+  }, [])
 
   // 追加機能
   const addExpense = () => {
