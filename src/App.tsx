@@ -45,12 +45,20 @@ function App() {
   // 収入編集用indexと、収入編集用の関数。useStateによって、numberかnull値が入る。
   const [editingIncomeId, setEditingIncomeId] = useState<number | null>(null)
   
-  // データベース連携テスト
+  // データベースから支出を取得し、expensesにセットする
   useEffect(() => {
     const testConnection = async () => {
       const { data, error } = await supabase
         .from('expenses')
         .select('*')
+        .order('date', { ascending: false })
+
+      if (error) {
+        console.error(error)
+        return
+      }
+
+      setExpenses(data)
 
       console.log(data)
       console.log(error)
@@ -60,18 +68,39 @@ function App() {
 
   // 追加機能
   // MOD 2026/09/03 データベース連携
-  const addExpense = () => {
+  const addExpense = async () => {
     if (amount === '' || date === '') {
       return
     }
 
+    /*
     const newExpense: Expense = {
-      id: Date.now(), // ??? idは登録日付でいいかなぁ （あとで変える必要アリ）
+      id: Date.now(),
       amount: Number(amount),
       category: category,
       date: date,
     }
+    */
 
+    const { data, error } = await supabase
+    .from('expenses')
+    .insert([
+      {
+        amount: Number(amount),
+        category: category,
+        date: date,
+      },
+    ])
+    .select()
+
+    if (error) {
+      console.error(error)
+      return
+    }
+
+    console.log(data)
+
+    /*
     // 編集機能対応
     if (editingExpenseId != null) {
       const newExpenses = expenses.map((expense) =>
@@ -83,6 +112,8 @@ function App() {
     } else {
       setExpenses([...expenses, newExpense])
     }
+    */
+
     setAmount('')
     setDate('')
   }
