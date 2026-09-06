@@ -45,23 +45,38 @@ function App() {
   // 収入編集用indexと、収入編集用の関数。useStateによって、numberかnull値が入る。
   const [editingIncomeId, setEditingIncomeId] = useState<number | null>(null)
   
-  // データベースから支出を取得し、expensesにセットする
+  // データベースから支出, 収入のデータを取得し、expenses, incomesにそれぞれセットする
   useEffect(() => {
     const testConnection = async () => {
-      const { data, error } = await supabase
+      // 支出を取得
+      const { data: expenseData, error: expenseError } = await supabase
         .from('expenses')
         .select('*')
         .order('date', { ascending: false })
 
-      if (error) {
-        console.error(error)
+      if (expenseError) {
+        console.error(expenseError)
         return
       }
+      setExpenses(expenseData)
+      // debug
+      console.log(expenseData)
+      console.log(expenseError)
 
-      setExpenses(data)
+      // 収入を取得
+      const { data: incomeData, error: incomeError } = await supabase
+        .from('incomes')
+        .select('*')
+        .order('date', { ascending: false })
 
-      console.log(data)
-      console.log(error)
+      if (incomeError) {
+        console.error(incomeError)
+        return
+      }
+      setIncomes(incomeData)
+      // debug
+      console.log(incomeData)
+      console.log(incomeError)
     }
     testConnection()
   }, [])
@@ -73,87 +88,164 @@ function App() {
       return
     }
 
-    /*
-    const newExpense: Expense = {
-      id: Date.now(),
-      amount: Number(amount),
-      category: category,
-      date: date,
-    }
-    */
+    if (editingExpenseId != null) {
 
-    const { data, error } = await supabase
-    .from('expenses')
-    .insert([
-      {
+      // supabase, データ更新処理
+      const { error } = await supabase
+      .from('expenses')
+      .update({
         amount: Number(amount),
         category: category,
         date: date,
-      },
-    ])
-    .select()
+      })
+      .eq('id', editingExpenseId)
 
-    if (error) {
-      console.error(error)
-      return
-    }
+      if (error) {
+        console.error(error)
+        return
+      }
 
-    console.log(data)
-
-    /*
-    // 編集機能対応
-    if (editingExpenseId != null) {
+      // react, データ更新処理
       const newExpenses = expenses.map((expense) =>
-        // 指定のidの支出を探して、更新する処理
-        expense.id === editingExpenseId ? {...newExpense, id: editingExpenseId } : expense // ?????なんですかこれは
+        expense.id === editingExpenseId
+        ? {
+          ...expense,
+          amount: Number(amount),
+          category: category,
+          date: date,
+        }
+        : expense
       )
+
       setExpenses(newExpenses)
       setEditingExpenseId(null)
     } else {
-      setExpenses([...expenses, newExpense])
+
+      const { data, error } = await supabase
+        .from('expenses')
+        .insert([
+          {
+            amount: Number(amount),
+            category: category,
+            date: date,
+          },
+        ])
+        .select()
+      if (error) {
+        console.error(error)
+        return
+      }
+
+      if (data) {
+        setExpenses([...expenses, data[0]])
+      }
     }
-    */
 
     setAmount('')
     setDate('')
   }
 
   // 収入追加機能
-  const addIncome = () => {
+  const addIncome = async () => {
     if (incomeAmount === '' || incomeDate === '') {
       return
     }
-
-    const newIncome: Income = {
-      id: Date.now(), // idの値の取り方を後で変える必要アリ
-      amount: Number(incomeAmount),
-      source: incomeSource,
-      date: incomeDate,
-    }
-
-    // 編集機能対応
+  
     if (editingIncomeId != null) {
+
+      // supabase, データ更新処理
+      const { error } = await supabase
+      .from('incomes')
+      .update({
+        amount: Number(incomeAmount),
+        source: incomeSource,
+        date: incomeDate,
+      })
+      .eq('id', editingIncomeId)
+
+      if (error) {
+        console.error(error)
+        return
+      }
+
+      // react, データ更新処理
       const newIncomes = incomes.map((income) =>
-        income.id === editingIncomeId ? {...newIncome, id: editingIncomeId } : income // ?????なんですかこれは2
+        income.id === editingIncomeId
+        ? {
+          ...income,
+          amount: Number(incomeAmount),
+          source: incomeSource,
+          date: incomeDate,
+        }
+        : income
       )
+
       setIncomes(newIncomes)
       setEditingIncomeId(null)
     } else {
-      setIncomes([...incomes, newIncome])
+
+      const { data, error } = await supabase
+        .from('incomes')
+        .insert([
+          {
+            amount: Number(incomeAmount),
+            source: incomeSource,
+            date: incomeDate,
+          },
+        ])
+        .select()
+      if (error) {
+        console.error(error)
+        return
+      }
+
+      if (data) {
+        setIncomes([...incomes, data[0]])
+      }
     }
+
     setIncomeAmount('')
     setIncomeDate('')
   }
 
   // 支出用削除機能
-  const deleteExpense = (id: number) => {
-    const newExpenses = expenses.filter((expense) => expense.id !== id)
-    setExpenses(newExpenses)
+  const deleteExpense = async (id: number) => {
+    //const newExpenses = expenses.filter((expense) => expense.id !== id)
+    //setExpenses(newExpenses)
+    const { error } = await supabase
+    .from('expenses')
+    .delete()
+    .eq('id', id)
+
+    if (error) {
+      console.error(error)
+      return
+    }
+
+    setExpenses(
+      expenses.filter((expenses) => expenses.id !== id)
+    )
   }
+
+
   // 収入用削除機能
-  const deleteIncome = (id: number) => {
-    const newIncomes = incomes.filter((income) => income.id !== id)
-    setIncomes(newIncomes)
+  const deleteIncome = async (id: number) => {
+    //const newIncomes = incomes.filter((income) => income.id !== id)
+    //setIncomes(newIncomes)
+
+    const { error } = await supabase
+      .from('incomes')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      console.error(error)
+      return
+    }
+
+    setIncomes(
+      incomes.filter((income) => income.id !== id)
+    )
   }
 
   // 選択した月の支出を取り出す
