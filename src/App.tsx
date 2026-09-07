@@ -253,9 +253,20 @@ function App() {
     (expense) => expense.date.slice(0, 7) === selectedMonth
   )
 
-  // 合計
-  const total = filteredExpenses.reduce(
+  // 選択した月の収入を取り出す
+  const filteredIncomes = incomes.filter(
+    (income) => income.date.slice(0, 7) === selectedMonth
+  )
+
+  // 選択した月の支出の合計
+  const expenseTotal = filteredExpenses.reduce(
     (sum, expense) => sum + expense.amount,
+    0
+  )
+
+  // 選択した月の収入の合計
+  const incomeTotal = filteredIncomes.reduce(
+    (sum, income) => sum + income.amount,
     0
   )
 
@@ -285,7 +296,7 @@ function App() {
   )
 
   // 残高
-  //const balance = incomeTotal - total
+  const balance = incomeTotal - expenseTotal
 
   return (
     <div className="app">
@@ -303,6 +314,11 @@ function App() {
         value={selectedMonth}
         onChange={(e) => setSelectedMonth(e.target.value)}
       /><br/>
+
+      <h2>今月の収支</h2>
+      <p>収入: ￥{incomeTotal}</p>
+      <p>支出: ￥{expenseTotal}</p>
+      <p>残高: ￥{balance}</p>
 
       <main className='container'>
       
@@ -400,7 +416,7 @@ function App() {
 
       <br/>
       <h2>支出一覧</h2>
-      <p>今月の支出: ¥{total}</p>
+      <p>今月の支出: ¥{expenseTotal}</p>
 
       <ul>
         {filteredExpenses.map((expense, index) => (
