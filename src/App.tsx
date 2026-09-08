@@ -1,5 +1,6 @@
 // memo:まだローカル環境でしか動作しません。localhost:xxxx
 import { useState } from 'react'
+import Login from './Login'
 import './App.css'
 import { PieChart, Pie, ResponsiveContainer, } from 'recharts'
 import { useEffect } from 'react'
@@ -22,6 +23,7 @@ type Income = {
 }
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('食費')
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10)) // 初期値を今日日付とする
@@ -44,6 +46,11 @@ function App() {
   // 初期値はnull
   // 収入編集用indexと、収入編集用の関数。useStateによって、numberかnull値が入る。
   const [editingIncomeId, setEditingIncomeId] = useState<number | null>(null)
+
+  // ログイン判定
+  if (!isLoggedIn) {
+    return <Login onLogin={() => setIsLoggedIn(true)} />
+  }
   
   // データベースから支出, 収入のデータを取得し、expenses, incomesにそれぞれセットする
   useEffect(() => {
