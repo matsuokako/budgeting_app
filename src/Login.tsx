@@ -45,7 +45,6 @@ function Login({ onLogin }: LoginProps) {
                 setError(error.message)
                 return
             }
-
             onLogin()
         }
     }
